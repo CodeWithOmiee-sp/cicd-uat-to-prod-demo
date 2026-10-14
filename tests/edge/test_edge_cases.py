@@ -1,22 +1,28 @@
 import os
-import pytest
-from datetime import datetime, timezone
-from unittest.mock import patch
 import sys
+from datetime import datetime, timezone
+
+try:
+    from datetime import UTC
+except ImportError:
+    UTC = timezone.utc
+from unittest.mock import patch
+
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from app.logic import (
-    calculate_item_subtotal,
     calculate_discounted_total,
-    calculate_order_tax,
+    calculate_item_subtotal,
     sanitize_customer_notes,
 )
 
+
 def simulate_payment_gateway_ping(endpoint_url: str):
     """Simulates external payment gateway communication with timeout handling."""
-    import urllib.request
     import urllib.error
+    import urllib.request
     try:
         req = urllib.request.Request(endpoint_url)
         with urllib.request.urlopen(req, timeout=2) as response:
@@ -66,7 +72,7 @@ class TestEdgeCases:
         assert len(sanitized) <= 150
 
     def test_timezone_and_leap_year_boundaries(self):
-        leap_day = datetime(2024, 2, 29, 23, 59, 59, 999999, tzinfo=timezone.utc)
+        leap_day = datetime(2024, 2, 29, 23, 59, 59, 999999, tzinfo=UTC)
         assert leap_day.month == 2
         assert leap_day.day == 29
         assert leap_day.isoformat() == "2024-02-29T23:59:59.999999+00:00"
