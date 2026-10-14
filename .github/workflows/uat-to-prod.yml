@@ -186,8 +186,13 @@ jobs:
           echo "Previous production SHA was: ${PREV_SHA}"
 
       - name: Fast-Forward Production Branch
+        env:
+          AUTH_TOKEN: ${{ secrets.PROMOTE_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           echo "Fast-forwarding production branch to tested SHA ${{ github.sha }}..."
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${AUTH_TOKEN}@github.com/${{ github.repository }}.git"
           git push origin ${{ github.sha }}:refs/heads/production
 
       - name: Deploy to Production
