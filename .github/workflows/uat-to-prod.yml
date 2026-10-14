@@ -1,0 +1,197 @@
+name: UAT to Production Pipeline
+
+on:
+  push:
+    branches:
+      - uat
+
+concurrency:
+  group: uat-pipeline
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit Tests & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov ruff httpx
+          pip install -r requirements.txt
+
+      - name: Run linter
+        run: |
+          ruff check tests/ app/
+
+      - name: Run unit test suite
+        run: |
+          pytest tests/unit -m unit --junitxml=test-reports/unit.xml
+
+      - name: Upload unit test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: test-reports/unit.xml
+
+  edge-case-tests:
+    name: Edge-Case Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -r requirements.txt
+
+      - name: Run edge-case test suite
+        run: |
+          pytest tests/edge -m edge --junitxml=test-reports/edge.xml
+
+      - name: Upload edge-case test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-test-results
+          path: test-reports/edge.xml
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest httpx
+          pip install -r requirements.txt
+
+      - name: Run integration test suite
+        run: |
+          pytest tests/integration -m integration --junitxml=test-reports/integration.xml
+
+      - name: Upload integration test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: test-reports/integration.xml
+
+  deploy-uat:
+    name: Deploy to UAT
+    needs: [unit-tests, edge-case-tests, integration-tests]
+    runs-on: ubuntu-latest
+    environment: uat
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to UAT
+        env:
+          APP_ENV: uat
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/deploy.sh uat
+
+      - name: Run UAT smoke test
+        if: vars.APP_URL != ''
+        run: |
+          ./scripts/smoke_test.sh "${{ vars.APP_URL }}"
+
+  promote-to-production:
+    name: Promote & Deploy to Production
+    needs: [deploy-uat]
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout full repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PROMOTE_TOKEN || github.token }}
+
+      - name: Capture Previous Production SHA
+        id: prev_sha
+        run: |
+          git fetch origin production:refs/remotes/origin/production || true
+          PREV_SHA=$(git rev-parse origin/production 2>/dev/null || echo "")
+          echo "sha=$PREV_SHA" >> "$GITHUB_OUTPUT"
+          echo "Previous production SHA was: ${PREV_SHA}"
+
+      - name: Fast-Forward Production Branch
+        run: |
+          echo "Fast-forwarding production branch to tested SHA ${{ github.sha }}..."
+          git push origin ${{ github.sha }}:refs/heads/production
+
+      - name: Deploy to Production
+        env:
+          APP_ENV: production
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/deploy.sh production
+
+      - name: Run Production smoke test
+        id: prod_smoke
+        if: vars.APP_URL != ''
+        run: |
+          ./scripts/smoke_test.sh "${{ vars.APP_URL }}"
+
+      - name: Auto-Rollback on Smoke Test Failure
+        if: failure() && steps.prod_smoke.outcome == 'failure' && steps.prev_sha.outputs.sha != ''
+        run: |
+          echo "Smoke test failed! Triggering automatic rollback to ${{ steps.prev_sha.outputs.sha }}..."
+          ./scripts/rollback.sh production "${{ steps.prev_sha.outputs.sha }}"
+
+  notify:
+    name: Pipeline Notification
+    needs: [promote-to-production]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Send Notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          chmod +x scripts/*.sh
+          STATUS="SUCCESS"
+          if [[ "${{ needs.promote-to-production.result }}" != "success" ]]; then
+            STATUS="FAILURE"
+          fi
+          ./scripts/notify.sh "$STATUS" "UAT to Production workflow completed with status $STATUS"

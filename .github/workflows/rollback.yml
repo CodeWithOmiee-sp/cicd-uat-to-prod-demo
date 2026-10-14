@@ -1,0 +1,59 @@
+name: Manual Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment for rollback'
+        required: true
+        type: choice
+        options:
+          - uat
+          - production
+      target_sha:
+        description: 'Git commit SHA or tag to restore'
+        required: true
+        type: string
+
+concurrency:
+  group: rollback-${{ github.event.inputs.environment }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    name: Rollback ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout repository at target SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.target_sha }}
+
+      - name: Execute Rollback Script
+        env:
+          APP_ENV: ${{ github.event.inputs.environment }}
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/rollback.sh "${{ github.event.inputs.environment }}" "${{ github.event.inputs.target_sha }}"
+
+      - name: Verify Health via Smoke Test
+        if: vars.APP_URL != ''
+        run: |
+          ./scripts/smoke_test.sh "${{ vars.APP_URL }}"
+
+      - name: Notify Rollback Result
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          chmod +x scripts/*.sh
+          STATUS="ROLLBACK_SUCCESS"
+          if [[ "${{ job.status }}" != "success" ]]; then
+            STATUS="ROLLBACK_FAILURE"
+          fi
+          ./scripts/notify.sh "$STATUS" "Manual rollback to ${{ github.event.inputs.target_sha }} executed on ${{ github.event.inputs.environment }} (Status: ${STATUS})"
