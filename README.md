@@ -13,4 +13,4 @@ Automated GitHub Actions CI/CD pipeline demonstrating:
 ```bash
 python -m pytest tests/
 ```
-Hello World !!!
+### Feature Test Run: Automated E2E verification
