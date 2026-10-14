@@ -3,11 +3,11 @@ OrderHub REST API Service
 Clean, lightweight sample application for UAT to Production Git Automation.
 """
 import os
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 from app.logic import (
-    calculate_item_subtotal,
     calculate_discounted_total,
+    calculate_item_subtotal,
     calculate_order_tax,
     sanitize_customer_notes,
 )
@@ -32,9 +32,9 @@ try:
 
     class CreateOrderRequest(BaseModel):
         customer_id: str
-        items: List[OrderItem]
+        items: list[OrderItem]
         discount_percent: float = Field(default=0.0, ge=0.0, le=100.0)
-        notes: Optional[str] = None
+        notes: str | None = None
 
     class OrderResponse(BaseModel):
         order_id: str
@@ -47,7 +47,7 @@ try:
         environment: str
         notes: str
 
-    _ORDERS_DB: Dict[str, Dict[str, Any]] = {
+    _ORDERS_DB: dict[str, dict[str, Any]] = {
         "ORD-1001": {
             "order_id": "ORD-1001",
             "customer_id": "CUST-99",
@@ -71,7 +71,7 @@ try:
             "orders_count": len(_ORDERS_DB)
         }
 
-    @app.get("/api/orders", response_model=List[OrderResponse], tags=["Orders"])
+    @app.get("/api/orders", response_model=list[OrderResponse], tags=["Orders"])
     def list_orders():
         return list(_ORDERS_DB.values())
 

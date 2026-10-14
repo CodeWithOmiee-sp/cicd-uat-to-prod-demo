@@ -1,16 +1,18 @@
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 # Ensure app is discoverable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from app.logic import (
-    calculate_item_subtotal,
     calculate_discounted_total,
+    calculate_item_subtotal,
     calculate_order_tax,
     sanitize_customer_notes,
 )
+
 
 @pytest.mark.unit
 class TestUnitCoreCalculations:

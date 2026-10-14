@@ -2,7 +2,7 @@
 OrderHub Core Logic
 Pure Python business calculation functions with zero external dependencies.
 """
-from typing import Optional
+
 
 def calculate_item_subtotal(unit_price: float, quantity: int) -> float:
     """Calculates subtotal for an item line."""
@@ -28,7 +28,7 @@ def calculate_order_tax(amount: float, tax_rate_percent: float = 8.5) -> float:
     return round((amount * tax_rate_percent) / 100.0, 2)
 
 
-def sanitize_customer_notes(notes: Optional[str]) -> str:
+def sanitize_customer_notes(notes: str | None) -> str:
     """Sanitizes customer order notes, limiting length to 150 characters."""
     if not notes or not isinstance(notes, str):
         return ""

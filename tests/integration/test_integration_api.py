@@ -1,7 +1,8 @@
-import os
 import json
-import urllib.request
+import os
 import urllib.error
+import urllib.request
+
 import pytest
 
 APP_URL = os.environ.get("APP_URL", "").rstrip("/")
