@@ -187,11 +187,12 @@ jobs:
 
       - name: Fast-Forward Production Branch
         env:
-          AUTH_TOKEN: ${{ secrets.PROMOTE_TOKEN || secrets.GITHUB_TOKEN }}
+          AUTH_TOKEN: ${{ secrets.PROMOTE_TOKEN || github.token }}
         run: |
           echo "Fast-forwarding production branch to tested SHA ${{ github.sha }}..."
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
           git remote set-url origin "https://x-access-token:${AUTH_TOKEN}@github.com/${{ github.repository }}.git"
           git push origin ${{ github.sha }}:refs/heads/production
 
