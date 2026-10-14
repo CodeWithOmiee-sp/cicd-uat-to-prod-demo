@@ -25,6 +25,9 @@ Developer pushes/merges to `uat`
     - scripts/deploy.sh uat
     - scripts/smoke_test.sh ${{ vars.APP_URL }}
             ↓
+  [e2e-uat-tests] (GitHub Environment: uat)
+    - Automated E2E feature journey tests against deployed UAT
+            ↓ (All E2E Journeys Green)
   [promote-to-production] (GitHub Environment: production, REQUIRED REVIEWER Gate)
     - Manual approval in GitHub Actions UI
     - Fast-forward push: git push origin ${{ github.sha }}:refs/heads/production
