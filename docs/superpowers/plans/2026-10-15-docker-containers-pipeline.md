@@ -16,7 +16,7 @@
 - Create: `Dockerfile.backend`
 - Create: `.dockerignore`
 
-- [ ] **Step 1: Create `.dockerignore` to exclude local caches and git metadata from container builds**
+- [x] **Step 1: Create `.dockerignore` to exclude local caches and git metadata from container builds**
 
 ```dockerignore
 __pycache__/
@@ -32,7 +32,7 @@ venv/
 !config/.env.example
 ```
 
-- [ ] **Step 2: Create `Dockerfile.backend` for the FastAPI service**
+- [x] **Step 2: Create `Dockerfile.backend` for the FastAPI service**
 
 ```dockerfile
 # Multi-stage lightweight Python runtime
@@ -67,7 +67,7 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .dockerignore Dockerfile.backend
@@ -83,7 +83,7 @@ git commit -m "feat(docker): add backend Dockerfile and dockerignore"
 - Create: `frontend/nginx.conf`
 - Create: `Dockerfile.frontend`
 
-- [ ] **Step 1: Create `frontend/index.html` with real-time API health dashboard**
+- [x] **Step 1: Create `frontend/index.html` with real-time API health dashboard**
 
 ```html
 <!DOCTYPE html>
@@ -138,7 +138,7 @@ git commit -m "feat(docker): add backend Dockerfile and dockerignore"
 </html>
 ```
 
-- [ ] **Step 2: Create `frontend/nginx.conf` reverse proxying `/api/` to backend container**
+- [x] **Step 2: Create `frontend/nginx.conf` reverse proxying `/api/` to backend container**
 
 ```nginx
 server {
@@ -172,7 +172,7 @@ server {
 }
 ```
 
-- [ ] **Step 3: Create `Dockerfile.frontend`**
+- [x] **Step 3: Create `Dockerfile.frontend`**
 
 ```dockerfile
 FROM nginx:alpine
@@ -192,7 +192,7 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=3s --retries=3 \
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/ Dockerfile.frontend
@@ -206,7 +206,7 @@ git commit -m "feat(docker): add frontend Nginx configuration and Dockerfile"
 **Files:**
 - Create: `docker-compose.yml`
 
-- [ ] **Step 1: Create `docker-compose.yml` linking Frontend and Backend**
+- [x] **Step 1: Create `docker-compose.yml` linking Frontend and Backend**
 
 ```yaml
 version: '3.8'
@@ -259,7 +259,7 @@ networks:
     driver: bridge
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add docker-compose.yml
@@ -275,7 +275,7 @@ git commit -m "feat(docker): add multi-container docker-compose orchestration"
 - Modify: `scripts/smoke_test.sh`
 - Modify: `scripts/rollback.sh`
 
-- [ ] **Step 1: Update `scripts/deploy.sh` with Docker Compose deployment commands**
+- [x] **Step 1: Update `scripts/deploy.sh` with Docker Compose deployment commands**
 
 Add Docker Compose orchestration commands under the real deployment section:
 ```bash
@@ -294,7 +294,7 @@ docker-compose -f docker-compose.yml down || true
 docker-compose -f docker-compose.yml up -d --build
 ```
 
-- [ ] **Step 2: Update `scripts/smoke_test.sh` to check BOTH Frontend and Backend containers**
+- [x] **Step 2: Update `scripts/smoke_test.sh` to check BOTH Frontend and Backend containers**
 
 Check both port 8000 (`/api/health`) and port 3000 (`/healthz` or `/`):
 ```bash
@@ -302,7 +302,7 @@ Check both port 8000 (`/api/health`) and port 3000 (`/healthz` or `/`):
 # Validates both Backend container health and Frontend container health
 ```
 
-- [ ] **Step 3: Update `scripts/rollback.sh` with Docker rollback logic**
+- [x] **Step 3: Update `scripts/rollback.sh` with Docker rollback logic**
 
 ```bash
 # In scripts/rollback.sh:
@@ -315,7 +315,7 @@ git checkout "$TARGET_SHA"
 docker-compose -f docker-compose.yml up -d --build
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/
@@ -329,7 +329,7 @@ git commit -m "feat(scripts): update deploy, smoke_test, and rollback for Docker
 **Files:**
 - Modify: `.github/workflows/uat-to-prod.yml`
 
-- [ ] **Step 1: Add Docker Build Validation Job in CI**
+- [x] **Step 1: Add Docker Build Validation Job in CI**
 
 Before deploying to UAT, GitHub Actions verifies that both `Dockerfile.backend` and `Dockerfile.frontend` build cleanly without errors:
 ```yaml
@@ -360,11 +360,11 @@ Before deploying to UAT, GitHub Actions verifies that both `Dockerfile.backend` 
           tags: orderhub-frontend:test
 ```
 
-- [ ] **Step 2: Update `deploy-uat` dependencies**
+- [x] **Step 2: Update `deploy-uat` dependencies**
 
 Update `deploy-uat` needs to require `[unit-tests, edge-case-tests, integration-tests, docker-build-test]`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/uat-to-prod.yml
@@ -379,6 +379,6 @@ git commit -m "ci(docker): add docker build validation job to CI pipeline"
 - Modify: `docs/PIPELINE.md`
 - Modify: `config/.env.example`
 
-- [ ] **Step 1: Document Docker multi-container run commands in `docs/PIPELINE.md`**
-- [ ] **Step 2: Run all local tests (`python -m pytest tests/`) and verify 23/23 pass**
+- [x] **Step 1: Document Docker multi-container run commands in `docs/PIPELINE.md`**
+- [x] **Step 2: Run all local tests (`python -m pytest tests/`) and verify 23/23 pass**
 - [ ] **Step 3: Push to `uat` and verify complete pipeline execution on GitHub Actions**
