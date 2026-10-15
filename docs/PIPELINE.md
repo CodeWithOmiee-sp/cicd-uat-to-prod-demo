@@ -1,6 +1,6 @@
 # OrderHub CI/CD Pipeline Manual (`PIPELINE.md`)
 
-This document describes how the automated GitHub Actions pipeline works, how each test stage functions, how environment promotion occurs, and how to operate and roll back deployments.
+This document describes how the automated GitHub Actions pipeline works, how each test stage functions, how multi-container Docker orchestration operates, how environment promotion occurs, and how to operate and roll back deployments.
 
 ---
 
@@ -13,27 +13,28 @@ Developer pushes/merges to `uat`
             ↓
   GitHub Actions (on: push → uat)
             ↓
-  ┌───────────────────────────────────────────────┐
-  │ 1. Unit Tests & Lint (ruff + pytest unit)     │
-  │ 2. Edge-Case Tests (pytest edge)              │  (Parallel CI Jobs)
-  │ 3. Integration Tests (pytest integration)     │
-  └───────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────┐
+  │ 1. Unit Tests & Lint (ruff + pytest unit)              │
+  │ 2. Edge-Case Tests (pytest edge)                       │  (Parallel CI Jobs)
+  │ 3. Integration Tests (pytest integration)              │
+  │ 4. Docker Build Test (Dockerfile.backend + frontend)   │
+  └────────────────────────────────────────────────────────┘
             ↓ All Green?
        NO → Pipeline aborts, failure notification sent, production untouched.
       YES ↓
   [deploy-uat] (GitHub Environment: uat)
-    - scripts/deploy.sh uat
-    - scripts/smoke_test.sh ${{ vars.APP_URL }}
+    - scripts/deploy.sh uat (Docker Compose multi-container stack)
+    - scripts/smoke_test.sh ${{ vars.APP_URL }} ${{ vars.FRONTEND_URL }}
             ↓
   [e2e-uat-tests] (GitHub Environment: uat)
-    - Automated E2E feature journey tests against deployed UAT
+    - Automated E2E feature user journey tests against deployed UAT
             ↓ (All E2E Journeys Green)
   [promote-to-production] (GitHub Environment: production, REQUIRED REVIEWER Gate)
     - Manual approval in GitHub Actions UI
     - Fast-forward push: git push origin ${{ github.sha }}:refs/heads/production
       (Fails loudly if not a clean fast-forward)
-    - scripts/deploy.sh production
-    - scripts/smoke_test.sh ${{ vars.APP_URL }}
+    - scripts/deploy.sh production (Docker Compose multi-container stack)
+    - scripts/smoke_test.sh ${{ vars.APP_URL }} ${{ vars.FRONTEND_URL }}
     - Auto-rollback on smoke failure: scripts/rollback.sh production <previous_sha>
             ↓
   [notify] (if: always())
@@ -42,18 +43,54 @@ Developer pushes/merges to `uat`
 
 ---
 
-## 2. Local Testing (Single Command)
+## 2. Multi-Container Docker Architecture
 
-All tests can be executed locally with a single command:
+OrderHub runs as two isolated containers orchestrated via `docker-compose.yml`:
+1. **Frontend Container (`Dockerfile.frontend`)**:
+   - Lightweight Alpine Nginx web server.
+   - Serves dashboard UI (`frontend/index.html`) on port `3000`.
+   - Reverse proxies `/api/*` traffic internally to `http://backend:8000/api/*`.
+   - Exposes `/healthz` for Nginx container health monitoring.
+2. **Backend Container (`Dockerfile.backend`)**:
+   - Python 3.11-slim runtime running FastAPI / Uvicorn on port `8000`.
+   - Contains business logic and REST endpoints.
+   - Exposes `/api/health` for container health monitoring.
+
+### Running Multi-Container Stack Locally:
 
 ```bash
-# Run all 19 test cases across all suites
+# Start both Frontend and Backend containers in background
+docker compose up -d --build
+
+# Check status of containers
+docker compose ps
+
+# Access Frontend Dashboard:
+# http://localhost:3000
+
+# Access Backend API / OpenAPI Docs:
+# http://localhost:8000/docs
+# http://localhost:8000/api/health
+
+# Stop containers
+docker compose down
+```
+
+---
+
+## 3. Local Testing (Single Command)
+
+All tests can be executed locally with a single command without Docker or external network dependencies:
+
+```bash
+# Run all 23 test cases across all suites
 python -m pytest tests/
 
 # Run individual test suites
 python -m pytest tests/unit -m unit
 python -m pytest tests/edge -m edge
 python -m pytest tests/integration -m integration
+python -m pytest tests/e2e -m e2e
 ```
 
 ### Edge-Case Testing & Failure Gate
@@ -71,7 +108,7 @@ The edge-case suite under `tests/edge/test_edge_cases.py` validates:
 
 ---
 
-## 3. Promotion & Fast-Forward Guarantee
+## 4. Promotion & Fast-Forward Guarantee
 
 1. **Promote the Same Commit:** The pipeline never creates a merge commit when promoting to production. It pushes the exact, tested commit SHA (`${{ github.sha }}`) to `refs/heads/production`.
 2. **Fast-Forward Only:** If `production` has diverged, the promotion step **fails loudly** and refuses to force-push.
@@ -79,13 +116,13 @@ The edge-case suite under `tests/edge/test_edge_cases.py` validates:
 
 ---
 
-## 4. Deployment & Rollback Operations
+## 5. Deployment & Rollback Operations
 
 ### Automated Rollback
 If the production deployment completes but the subsequent smoke test (`scripts/smoke_test.sh`) fails:
 1. The step `Auto-Rollback on Smoke Test Failure` activates automatically.
 2. It fetches the previously deployed commit SHA (`steps.prev_sha.outputs.sha`).
-3. It executes `scripts/rollback.sh production <previous_sha>`.
+3. It executes `scripts/rollback.sh production <previous_sha>`, which re-runs `docker-compose -f docker-compose.yml up -d --build` for the previous SHA.
 4. The final `notify` step dispatches a failure alert.
 
 ### Manual Rollback (`rollback.yml`)
