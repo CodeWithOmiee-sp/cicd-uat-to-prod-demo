@@ -107,9 +107,35 @@ jobs:
           name: integration-test-results
           path: test-reports/integration.xml
 
+  docker-build-test:
+    name: Docker Container Build Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test Build Backend Container
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.backend
+          push: false
+          tags: orderhub-backend:test
+
+      - name: Test Build Frontend Container
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.frontend
+          push: false
+          tags: orderhub-frontend:test
+
   deploy-uat:
     name: Deploy to UAT
-    needs: [unit-tests, edge-case-tests, integration-tests]
+    needs: [unit-tests, edge-case-tests, integration-tests, docker-build-test]
     runs-on: ubuntu-latest
     environment: uat
     steps:
@@ -127,7 +153,7 @@ jobs:
       - name: Run UAT smoke test
         if: vars.APP_URL != ''
         run: |
-          ./scripts/smoke_test.sh "${{ vars.APP_URL }}"
+          ./scripts/smoke_test.sh "${{ vars.APP_URL }}" "${{ vars.FRONTEND_URL || '' }}"
 
   e2e-uat-tests:
     name: Automated E2E Feature Tests (UAT)
@@ -208,7 +234,7 @@ jobs:
         id: prod_smoke
         if: vars.APP_URL != ''
         run: |
-          ./scripts/smoke_test.sh "${{ vars.APP_URL }}"
+          ./scripts/smoke_test.sh "${{ vars.APP_URL }}" "${{ vars.FRONTEND_URL || '' }}"
 
       - name: Auto-Rollback on Smoke Test Failure
         if: failure() && steps.prod_smoke.outcome == 'failure' && steps.prev_sha.outputs.sha != ''
