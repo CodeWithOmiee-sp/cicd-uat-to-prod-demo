@@ -1,11 +1,17 @@
 FROM nginx:alpine
 
+# Accept build argument for backend API URL (empty by default for relative reverse-proxy mode)
+ARG API_URL=""
+
 # Remove default nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy frontend source and custom reverse proxy config
 COPY frontend/index.html /usr/share/nginx/html/index.html
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Generate config.js at build time with the injected API_URL
+RUN echo "window.__APP_CONFIG__ = { API_BASE_URL: '${API_URL}' };" > /usr/share/nginx/html/config.js
 
 EXPOSE 80
 

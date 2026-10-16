@@ -10,37 +10,55 @@
     h1 { margin-top: 0; color: #38bdf8; }
     .badge { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 14px; font-weight: 600; }
     .badge-ok { background: #059669; color: white; }
+    .badge-info { background: #0369a1; color: white; margin-left: 8px; }
     .btn { background: #0284c7; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 15px; }
     .btn:hover { background: #0369a1; }
     pre { background: #0b0f19; padding: 16px; border-radius: 8px; overflow-x: auto; color: #a5f3fc; }
   </style>
+  <!-- Load build-time injected configuration -->
+  <script src="/config.js"></script>
 </head>
 <body>
   <div class="card">
     <h1>🚀 OrderHub Platform Dashboard</h1>
     <p>Multi-Container Deployment: <strong>Frontend (Nginx) + Backend (FastAPI)</strong></p>
-    <div>
+    <div style="margin-bottom: 12px;">
       Status: <span id="status-badge" class="badge badge-ok">Checking...</span>
+      <span id="target-badge" class="badge badge-info">Target: Detecting...</span>
     </div>
-    <br>
     <button class="btn" onclick="checkBackendHealth()">Ping Backend API</button>
     <h3>Backend Health Response:</h3>
     <pre id="api-output">Click the button to test API connection...</pre>
   </div>
 
   <script>
+    function getApiBaseUrl() {
+      if (window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE_URL) {
+        return window.__APP_CONFIG__.API_BASE_URL.replace(/\/$/, "");
+      }
+      return ""; // Default to relative URL
+    }
+
     async function checkBackendHealth() {
       const badge = document.getElementById('status-badge');
+      const targetBadge = document.getElementById('target-badge');
       const output = document.getElementById('api-output');
+      const apiBase = getApiBaseUrl();
+
+      targetBadge.innerText = apiBase ? `Compiled Target: ${apiBase}` : 'Mode: Relative Reverse-Proxy';
+
+      const healthEndpoint = `${apiBase}/api/health`;
+
       try {
-        const res = await fetch('/api/health');
+        const res = await fetch(healthEndpoint);
         const data = await res.json();
         badge.innerText = 'Connected: ' + data.status.toUpperCase();
+        badge.style.background = '#059669';
         output.innerText = JSON.stringify(data, null, 2);
       } catch (err) {
         badge.innerText = 'Disconnected';
         badge.style.background = '#dc2626';
-        output.innerText = 'Error connecting to backend: ' + err.message;
+        output.innerText = `Error connecting to backend at ${healthEndpoint}: ${err.message}`;
       }
     }
     window.onload = checkBackendHealth;
