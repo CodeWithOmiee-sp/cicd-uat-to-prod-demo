@@ -1,0 +1,133 @@
+name: Pull Request Validation Gate
+
+on:
+  pull_request:
+    branches:
+      - uat
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pr-lint-and-unit-tests:
+    name: Lint & Unit/Edge Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov ruff httpx
+          pip install -r requirements.txt
+
+      - name: Run linter
+        run: |
+          ruff check tests/ app/
+
+      - name: Run unit and edge tests
+        run: |
+          pytest tests/unit tests/edge -m "unit or edge" --junitxml=test-reports/unit-edge.xml
+
+      - name: Upload unit and edge test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-unit-edge-results
+          path: test-reports/unit-edge.xml
+
+  pr-coverage-gate:
+    name: Integration Tests & 80% Coverage Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov httpx
+          pip install -r requirements.txt
+
+      - name: Run integration tests with 80% coverage gate
+        run: |
+          pytest tests/integration tests/unit -m "integration or unit" \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml:test-reports/coverage.xml \
+            --cov-report=html:test-reports/coverage_html \
+            --cov-fail-under=80 \
+            --junitxml=test-reports/integration.xml
+
+      - name: Upload PR code coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-code-coverage-report
+          path: test-reports/coverage_html/
+
+  pr-docker-build-test:
+    name: Docker Container Build Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test Build Backend Container
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.backend
+          push: false
+          tags: orderhub-backend:pr-test
+
+      - name: Test Build Frontend Container with Injected API_URL
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.frontend
+          push: false
+          build-args: |
+            API_URL=https://uat-api.example.com
+          tags: orderhub-frontend:pr-test
+
+  pr-gate-complete:
+    name: PR Gate Status
+    needs: [pr-lint-and-unit-tests, pr-coverage-gate, pr-docker-build-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate PR Validation Status
+        run: |
+          if [[ "${{ needs.pr-lint-and-unit-tests.result }}" != "success" || \
+                "${{ needs.pr-coverage-gate.result }}" != "success" || \
+                "${{ needs.pr-docker-build-test.result }}" != "success" ]]; then
+            echo "❌ One or more PR validation checks failed."
+            echo "Lint & Unit: ${{ needs.pr-lint-and-unit-tests.result }}"
+            echo "Coverage:    ${{ needs.pr-coverage-gate.result }}"
+            echo "Docker:      ${{ needs.pr-docker-build-test.result }}"
+            exit 1
+          fi
+          echo "✅ All PR validation checks passed successfully. Ready for merge into UAT!"
