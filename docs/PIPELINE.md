@@ -48,13 +48,24 @@ Developer pushes/merges to `uat`
 OrderHub runs as two isolated containers orchestrated via `docker-compose.yml`:
 1. **Frontend Container (`Dockerfile.frontend`)**:
    - Lightweight Alpine Nginx web server.
+   - Accepts build argument `ARG API_URL` to generate `/usr/share/nginx/html/config.js` (`window.__APP_CONFIG__.API_BASE_URL`).
    - Serves dashboard UI (`frontend/index.html`) on port `3000`.
-   - Reverse proxies `/api/*` traffic internally to `http://backend:8000/api/*`.
+   - **Dual-Mode Operation:** If `API_URL` is baked into the build, calls that explicit backend; otherwise falls back to local relative reverse-proxy (`/api/*` -> `http://backend:8000/api/*`).
    - Exposes `/healthz` for Nginx container health monitoring.
 2. **Backend Container (`Dockerfile.backend`)**:
    - Python 3.11-slim runtime running FastAPI / Uvicorn on port `8000`.
    - Contains business logic and REST endpoints.
    - Exposes `/api/health` for container health monitoring.
+
+### Building Frontend with Environment-Specific URLs:
+
+```bash
+# Build frontend targeting UAT backend
+docker build --build-arg API_URL="https://uat-api.example.com" -f Dockerfile.frontend -t orderhub-frontend:uat .
+
+# Build frontend targeting Production backend
+docker build --build-arg API_URL="https://api.example.com" -f Dockerfile.frontend -t orderhub-frontend:prod .
+```
 
 ### Running Multi-Container Stack Locally:
 

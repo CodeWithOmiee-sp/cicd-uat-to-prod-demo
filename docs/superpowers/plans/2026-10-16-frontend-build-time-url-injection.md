@@ -16,7 +16,7 @@
 - Modify: `Dockerfile.frontend`
 - Modify: `frontend/index.html`
 
-- [ ] **Step 1: Update `Dockerfile.frontend` to accept `ARG API_URL` and generate `config.js`**
+- [x] **Step 1: Update `Dockerfile.frontend` to accept `ARG API_URL` and generate `config.js`**
 
 ```dockerfile
 FROM nginx:alpine
@@ -42,7 +42,7 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=3s --retries=3 \
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-- [ ] **Step 2: Update `frontend/index.html` to consume `config.js` with fallback**
+- [x] **Step 2: Update `frontend/index.html` to consume `config.js` with fallback**
 
 Add `<script src="/config.js"></script>` and update `checkBackendHealth()`:
 ```html
@@ -115,7 +115,7 @@ Add `<script src="/config.js"></script>` and update `checkBackendHealth()`:
 </html>
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -131,7 +131,7 @@ git commit -m "feat(docker): add ARG API_URL and config.js build-time injection 
 **Files:**
 - Modify: `docker-compose.yml`
 
-- [ ] **Step 1: Pass `API_URL` under `frontend.build.args` in `docker-compose.yml`**
+- [x] **Step 1: Pass `API_URL` under `frontend.build.args` in `docker-compose.yml`**
 
 ```yaml
   frontend:
@@ -158,7 +158,7 @@ git commit -m "feat(docker): add ARG API_URL and config.js build-time injection 
       start_period: 3s
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -174,7 +174,7 @@ git commit -m "feat(docker): add API_URL build arg to frontend in docker-compose
 **Files:**
 - Modify: `.github/workflows/uat-to-prod.yml`
 
-- [ ] **Step 1: Update `docker-build-test` to test build-time argument injection**
+- [x] **Step 1: Update `docker-build-test` to test build-time argument injection**
 
 In `.github/workflows/uat-to-prod.yml`, update `Test Build Frontend Container` step:
 ```yaml
@@ -189,14 +189,14 @@ In `.github/workflows/uat-to-prod.yml`, update `Test Build Frontend Container` s
           tags: orderhub-frontend:test
 ```
 
-- [ ] **Step 2: Update `deploy.sh` to export `API_URL` during docker-compose build**
+- [x] **Step 2: Update `deploy.sh` to export `API_URL` during docker-compose build**
 
 In `scripts/deploy.sh`, ensure `export API_URL="${APP_URL:-}"` is exported before building containers:
 ```bash
 export API_URL="${APP_URL:-}"
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -212,11 +212,11 @@ git commit -m "ci(docker): pass API_URL build argument during CI build validatio
 **Files:**
 - Modify: `docs/PIPELINE.md`
 
-- [ ] **Step 1: Document Build-Time URL Injection in `docs/PIPELINE.md`**
+- [x] **Step 1: Document Build-Time URL Injection in `docs/PIPELINE.md`**
 
 Add an explanation in Section 2 of `docs/PIPELINE.md` showing how developers and CI can build the frontend with specific target URLs using `--build-arg API_URL=...`.
 
-- [ ] **Step 2: Run all local tests (`python -m pytest tests/`) to ensure no regressions**
+- [x] **Step 2: Run all local tests (`python -m pytest tests/`) to ensure no regressions**
 
 Run: `python -m pytest tests/`
 Expected: All 23 tests pass.
