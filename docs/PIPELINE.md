@@ -91,7 +91,22 @@ python -m pytest tests/unit -m unit
 python -m pytest tests/edge -m edge
 python -m pytest tests/integration -m integration
 python -m pytest tests/e2e -m e2e
+
+# Run with Code Coverage & Branch Analysis (80% threshold)
+python -m pytest --cov=app --cov-report=term-missing
 ```
+
+### Code Coverage Gate (80% Threshold)
+The pipeline enforces a strict **80% minimum code coverage gate** configured in `pyproject.toml`.
+- If a developer introduces new code or API endpoints without writing corresponding tests, the overall statement coverage falls below 80%.
+- In CI, the command `pytest --cov=app --cov-fail-under=80` returns an exit code of `1` upon coverage deficit, halting the build and blocking promotion to UAT.
+- Interactive HTML coverage reports are archived on every CI run under the `code-coverage-report` artifact.
+
+### Dynamic Route Auto-Discovery Gate
+In `tests/integration/test_integration_api.py`, `test_dynamic_route_auto_discovery` dynamically inspects `app.routes` at test execution time:
+- Automatically discovers all registered endpoints in the FastAPI router.
+- Pings every non-parameterized GET route.
+- Guarantees that any newly added endpoint does not crash with a 500 Internal Server Error, even before dedicated feature tests are written.
 
 ### Edge-Case Testing & Failure Gate
 The edge-case suite under `tests/edge/test_edge_cases.py` validates:
