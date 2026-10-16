@@ -14,3 +14,8 @@ Automated GitHub Actions CI/CD pipeline demonstrating:
 python -m pytest tests/
 ```
 ### Feature Test Run: Automated E2E verification
+
+## Pull Request Validation Gate
+- Feature branches (`feat/*` → `uat`) are validated prior to merging.
+- Executes parallel linting, edge-case tests, 80% code coverage gate, and multi-container Docker build tests.
+- Consolidates results into `PR Gate Status` required check.
