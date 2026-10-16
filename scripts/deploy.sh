@@ -19,6 +19,7 @@ DRY_RUN="${DRY_RUN:-true}"
 export APP_ENV="${ENVIRONMENT}"
 export FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 export BACKEND_PORT="${BACKEND_PORT:-8000}"
+export API_URL="${APP_URL:-}"
 
 echo "=================================================="
 echo "Starting deployment"

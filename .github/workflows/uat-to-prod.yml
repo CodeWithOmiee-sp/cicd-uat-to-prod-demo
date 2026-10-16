@@ -138,12 +138,14 @@ jobs:
           push: false
           tags: orderhub-backend:test
 
-      - name: Test Build Frontend Container
+      - name: Test Build Frontend Container with Injected API_URL
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile.frontend
           push: false
+          build-args: |
+            API_URL=https://uat-api.example.com
           tags: orderhub-frontend:test
 
   deploy-uat:
@@ -159,6 +161,7 @@ jobs:
         env:
           APP_ENV: uat
           APP_URL: ${{ vars.APP_URL }}
+          API_URL: ${{ vars.APP_URL }}
         run: |
           chmod +x scripts/*.sh
           ./scripts/deploy.sh uat
@@ -235,6 +238,7 @@ jobs:
         env:
           APP_ENV: production
           APP_URL: ${{ vars.APP_URL }}
+          API_URL: ${{ vars.APP_URL }}
         run: |
           chmod +x scripts/*.sh
           ./scripts/deploy.sh production
