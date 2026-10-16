@@ -15,7 +15,7 @@
 **Files:**
 - Create: `.github/workflows/pr-validation.yml`
 
-- [ ] **Step 1: Write `.github/workflows/pr-validation.yml`**
+- [x] **Step 1: Write `.github/workflows/pr-validation.yml`**
 
 ```yaml
 name: Pull Request Validation Gate
@@ -153,7 +153,7 @@ jobs:
           echo "✅ All PR validation checks passed successfully. Ready for merge into UAT!"
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -169,14 +169,14 @@ git commit -m "ci: add pull request validation gate workflow for uat branch"
 **Files:**
 - Modify: `docs/PIPELINE.md`
 
-- [ ] **Step 1: Document PR workflow in `docs/PIPELINE.md`**
+- [x] **Step 1: Document PR workflow in `docs/PIPELINE.md`**
 
 Add Section 1.1 in `docs/PIPELINE.md` documenting:
 - The developer workflow from feature branch to Pull Request.
 - The automated PR validation checks.
 - How to configure `PR Gate Status` as a required status check in GitHub branch protection rules.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -192,12 +192,12 @@ git commit -m "docs: document PR validation gate workflow and branch protection 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-16-pr-validation-workflow.md`
 
-- [ ] **Step 1: Run all local tests (`python -m pytest tests/`) to ensure clean state**
+- [x] **Step 1: Run all local tests (`python -m pytest tests/`) to ensure clean state**
 
 Run: `python -m pytest tests/`
 Expected: All 23 tests pass.
 
-- [ ] **Step 2: Commit plan checklist and push to `origin/uat`**
+- [x] **Step 2: Commit plan checklist and push to `origin/uat`**
 
 ```bash
 git add docs/superpowers/plans/2026-10-16-pr-validation-workflow.md
@@ -205,6 +205,6 @@ git commit -m "docs: complete PR validation workflow plan"
 git push origin uat
 ```
 
-- [ ] **Step 3: Verify GitHub Actions status on `uat`**
+- [x] **Step 3: Verify GitHub Actions status on `uat`**
 
 Verify that `uat-to-prod.yml` runs smoothly and `.github/workflows/pr-validation.yml` is active on GitHub.

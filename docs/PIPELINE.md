@@ -41,6 +41,18 @@ Developer pushes/merges to `uat`
     - scripts/notify.sh <status> <message>
 ```
 
+### 1.1 Developer Lifecycle & Pull Request (PR) Validation Gate
+
+In a team workflow, developers do not push directly to `uat`. Instead:
+1. **Developer creates a feature branch:** `git checkout -b feat/my-feature`
+2. **Developer opens a Pull Request targeting `uat`:** `feat/my-feature` → `uat`.
+3. **Automated PR Validation Gate (`pr-validation.yml`) triggers automatically:**
+   - **Lint & Unit/Edge Tests:** `ruff check .` + `pytest tests/unit tests/edge`.
+   - **80% Code Coverage Gate:** `pytest --cov=app --cov-fail-under=80` (blocks if new code lacks tests).
+   - **Docker Build Validation:** Verifies both `Dockerfile.backend` and `Dockerfile.frontend` build cleanly.
+4. **Merge Protection:** If any check fails, the PR status check `PR Gate Status` fails, and GitHub prevents merging broken code into `uat`.
+5. **Post-Merge Deployment (`uat-to-prod.yml`):** Once reviewed and merged into `uat`, the main pipeline deploys to UAT, executes E2E journeys, and awaits manual approval for Production promotion.
+
 ---
 
 ## 2. Multi-Container Docker Architecture
