@@ -221,7 +221,7 @@ Add an explanation in Section 2 of `docs/PIPELINE.md` showing how developers and
 Run: `python -m pytest tests/`
 Expected: All 23 tests pass.
 
-- [ ] **Step 3: Commit and push to `uat`**
+- [x] **Step 3: Commit and push to `uat`**
 
 ```bash
 git add docs/PIPELINE.md
@@ -229,6 +229,6 @@ git commit -m "docs(docker): document build-time API_URL injection in PIPELINE.m
 git push origin uat
 ```
 
-- [ ] **Step 4: Verify complete pipeline run on GitHub Actions**
+- [x] **Step 4: Verify complete pipeline run on GitHub Actions**
 
 Verify that `docker-build-test`, `deploy-uat`, and downstream jobs build and pass cleanly.
