@@ -31,7 +31,7 @@
 **Files:**
 - Modify: `pyproject.toml`
 
-- [ ] **Step 1: Add coverage settings to `pyproject.toml`**
+- [x] **Step 1: Add coverage settings to `pyproject.toml`**
 
 Add coverage branch tracking and the 80% failure threshold:
 ```toml
@@ -54,12 +54,12 @@ exclude_lines = [
 ]
 ```
 
-- [ ] **Step 2: Verify `pyproject.toml` syntax with ruff**
+- [x] **Step 2: Verify `pyproject.toml` syntax with ruff**
 
 Run: `python -m ruff check .`
 Expected: `All checks passed!`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -75,7 +75,7 @@ git commit -m "chore(cov): configure pytest-cov branch tracking and 80% threshol
 **Files:**
 - Modify: `tests/integration/test_integration_api.py`
 
-- [ ] **Step 1: Update `tests/integration/test_integration_api.py` with TestClient and dynamic route discovery**
+- [x] **Step 1: Update `tests/integration/test_integration_api.py` with TestClient and dynamic route discovery**
 
 Replace mock payloads with real `TestClient(app)` calls to execute `app/main.py` directly, and add `test_dynamic_route_auto_discovery`:
 ```python
@@ -169,12 +169,12 @@ class TestOrderHubApiIntegration:
                 assert resp.status_code != 500, f"Route '{path}' crashed with 500 Internal Server Error!"
 ```
 
-- [ ] **Step 2: Run pytest with coverage locally to verify threshold passes (>90%)**
+- [x] **Step 2: Run pytest with coverage locally to verify threshold passes (>90%)**
 
 Run: `python -m pytest --cov=app --cov-report=term-missing`
 Expected: 24/24 tests PASS, and total coverage exceeds 90%.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -190,7 +190,7 @@ git commit -m "test(cov): update integration tests with TestClient and dynamic r
 **Files:**
 - Modify: `.github/workflows/uat-to-prod.yml`
 
-- [ ] **Step 1: Update `integration-tests` in `uat-to-prod.yml` to enforce 80% coverage gate**
+- [x] **Step 1: Update `integration-tests` in `uat-to-prod.yml` to enforce 80% coverage gate**
 
 Update `.github/workflows/uat-to-prod.yml` under `integration-tests` job to run with `--cov=app --cov-report=xml:test-reports/coverage.xml --cov-report=html:test-reports/coverage_html --cov-fail-under=80` and upload coverage artifacts:
 ```yaml
@@ -212,7 +212,7 @@ Update `.github/workflows/uat-to-prod.yml` under `integration-tests` job to run 
           path: test-reports/coverage_html/
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -228,7 +228,7 @@ git commit -m "ci(cov): enforce 80% code coverage blocker and artifact upload in
 **Files:**
 - Modify: `docs/PIPELINE.md`
 
-- [ ] **Step 1: Document Code Coverage Gate in `docs/PIPELINE.md`**
+- [x] **Step 1: Document Code Coverage Gate in `docs/PIPELINE.md`**
 
 Add Section 2.1 in `docs/PIPELINE.md` explaining:
 - The 80% minimum coverage threshold rule.
@@ -236,7 +236,7 @@ Add Section 2.1 in `docs/PIPELINE.md` explaining:
 - How developers can verify coverage locally before pushing: `python -m pytest --cov=app --cov-report=term-missing`.
 - How the Dynamic Route Auto-Discovery test prevents 500 errors on new routes.
 
-- [ ] **Step 2: Commit documentation**
+- [x] **Step 2: Commit documentation**
 
 ```bash
 git add docs/PIPELINE.md
