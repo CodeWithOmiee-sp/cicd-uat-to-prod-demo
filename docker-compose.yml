@@ -26,6 +26,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        API_URL: ${API_URL:-}
     image: orderhub-frontend:latest
     container_name: orderhub-frontend
     restart: unless-stopped
