@@ -15,7 +15,7 @@
 **Files:**
 - Create: `tests/unit/test_deploy_staging.py`
 
-- [ ] **Step 1: Write the failing tests for server staging and manifest generation**
+- [x] **Step 1: Write the failing tests for server staging and manifest generation**
 
 ```python
 import os
@@ -95,12 +95,12 @@ class TestServerStagingEngine:
         assert "app/main.py" in content
 ```
 
-- [ ] **Step 2: Run test to verify it fails before implementation**
+- [x] **Step 2: Run test to verify it fails before implementation**
 
 Run: `python -m pytest tests/unit/test_deploy_staging.py`
 Expected: FAIL with `ModuleNotFoundError: No module named 'scripts.stage_server_bundle'`
 
-- [ ] **Step 3: Commit test file**
+- [x] **Step 3: Commit test file**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -116,7 +116,7 @@ git commit -m "test: add test suite for server staging engine"
 **Files:**
 - Create: `scripts/stage_server_bundle.py`
 
-- [ ] **Step 1: Write `scripts/stage_server_bundle.py`**
+- [x] **Step 1: Write `scripts/stage_server_bundle.py`**
 
 ```python
 #!/usr/bin/env python3
@@ -243,12 +243,12 @@ if __name__ == "__main__":
     main()
 ```
 
-- [ ] **Step 2: Run pytest to verify staging engine tests pass**
+- [x] **Step 2: Run pytest to verify staging engine tests pass**
 
 Run: `python -m pytest tests/unit/test_deploy_staging.py`
 Expected: 3 passed in < 1s
 
-- [ ] **Step 3: Commit staging engine implementation**
+- [x] **Step 3: Commit staging engine implementation**
 
 ```bash
 git add scripts/stage_server_bundle.py tests/unit/test_deploy_staging.py
@@ -262,7 +262,7 @@ git commit -m "feat: implement server staging engine and pass unit tests"
 **Files:**
 - Modify: `scripts/deploy.sh`
 
-- [ ] **Step 1: Update `scripts/deploy.sh` to stage bundle before deployment**
+- [x] **Step 1: Update `scripts/deploy.sh` to stage bundle before deployment**
 
 Update `scripts/deploy.sh` to:
 - Accept `DEPLOY_TARGET_DIR` (default `./local_server_storage/orderhub`).
@@ -271,12 +271,12 @@ Update `scripts/deploy.sh` to:
 - In dry-run mode, simulate deployment from the staged path.
 - In live mode, execute Docker Compose commands directly from within `$DEPLOY_TARGET_DIR`.
 
-- [ ] **Step 2: Test `scripts/deploy.sh` in dry-run and staging mode**
+- [x] **Step 2: Test `scripts/deploy.sh` in dry-run and staging mode**
 
 Run: `bash scripts/deploy.sh uat`
 Expected: Successfully stages into `./local_server_storage/orderhub` and prints manifest.
 
-- [ ] **Step 3: Commit `scripts/deploy.sh` update**
+- [x] **Step 3: Commit `scripts/deploy.sh` update**
 
 ```bash
 git add scripts/deploy.sh
@@ -290,14 +290,14 @@ git commit -m "feat(deploy): integrate local server staging and configurable DEP
 **Files:**
 - Modify: `docs/PIPELINE.md`
 
-- [ ] **Step 1: Document local staging, file requirements, and switching to remote server**
+- [x] **Step 1: Document local staging, file requirements, and switching to remote server**
 
 Add Section 2.1 in `docs/PIPELINE.md`:
 - Explaining the exact server file manifest.
 - How to test locally via `DEPLOY_TARGET_DIR="./local_server_storage/orderhub"`.
 - How to switch `DEPLOY_TARGET_DIR` to the real server path (`/opt/orderhub` or SSH/SCP).
 
-- [ ] **Step 2: Commit `docs/PIPELINE.md`**
+- [x] **Step 2: Commit `docs/PIPELINE.md`**
 
 ```bash
 git add docs/PIPELINE.md
@@ -311,12 +311,12 @@ git commit -m "docs: document server staging workflow and target path configurat
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-21-local-server-staging-deploy.md` (check off all boxes)
 
-- [ ] **Step 1: Run full test suite with coverage gate**
+- [x] **Step 1: Run full test suite with coverage gate**
 
 Run: `python -m pytest tests/ --cov=app --cov-fail-under=80`
 Expected: All tests pass (26/26 tests, >= 80% coverage).
 
-- [ ] **Step 2: Commit plan checklist and push to remote `uat`**
+- [x] **Step 2: Commit plan checklist and push to remote `uat`**
 
 ```bash
 git add docs/superpowers/plans/2026-10-21-local-server-staging-deploy.md
