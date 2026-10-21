@@ -22,3 +22,6 @@ ENV/
 test-reports/
 htmlcov/
 .coverage
+
+# Local Server Staging Storage
+local_server_storage/
