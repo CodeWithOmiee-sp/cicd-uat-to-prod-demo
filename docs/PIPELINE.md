@@ -88,6 +88,42 @@ docker compose up -d --build
 # Check status of containers
 docker compose ps
 
+### 2.1 Server Staging & Pre-Flight Verification (`local_server_storage/orderhub`)
+
+Before files are deployed to a production or on-premise server, the pipeline supports a local server pre-flight simulation:
+
+```
+Development Repo ──► [stage_server_bundle.py] ──► Target Directory ($DEPLOY_TARGET_DIR)
+                                                 ├── docker-compose.yml
+                                                 ├── Dockerfile.backend & Dockerfile.frontend
+                                                 ├── app/ & frontend/
+                                                 ├── requirements.txt & scripts/smoke_test.sh
+                                                 ├── .env
+                                                 └── release_manifest.txt
+```
+
+#### 1. What Gets Staged to the Server:
+Only essential runtime files are packaged. Development caches (`__pycache__`, `.pytest_cache`, `.ruff_cache`), git internals (`.git`), and test suites (`tests/`) are strictly excluded.
+
+#### 2. Running Local Server Staging:
+```bash
+# Stage minimal server files into local test directory (./local_server_storage/orderhub)
+./scripts/deploy.sh uat
+
+# Inspect the generated release manifest
+cat local_server_storage/orderhub/release_manifest.txt
+```
+
+#### 3. Switching from Local Testing to Remote Server Path:
+Once the build and container startup are verified in `./local_server_storage/orderhub`, you can switch the target path to your actual server:
+```bash
+# Deploy to custom local folder or mounted server drive
+DEPLOY_TARGET_DIR="/opt/orderhub" DRY_RUN=false ./scripts/deploy.sh production
+
+# Or sync the staged package over SSH/SCP to the company VM
+rsync -avz local_server_storage/orderhub/ user@onprem-host:/opt/orderhub/
+```
+
 # Access Frontend Dashboard:
 # http://localhost:3000
 
