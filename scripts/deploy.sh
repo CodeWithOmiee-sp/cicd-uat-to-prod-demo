@@ -23,7 +23,7 @@ export BACKEND_PORT="${BACKEND_PORT:-8000}"
 export API_URL="${APP_URL:-}"
 
 echo "=================================================="
-echo "OrderHub Deployment & Server Staging"
+echo "OrderHub Deployment & Auto-Run Lifecycle"
 echo "Target Environment: ${ENVIRONMENT}"
 echo "Target Directory:   ${DEPLOY_TARGET_DIR}"
 echo "Commit SHA:         ${COMMIT_SHA}"
@@ -34,7 +34,16 @@ echo "Timestamp (UTC):    $(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date)"
 echo "=================================================="
 
 # ==============================================================================
-# PHASE 1: STAGE SERVER RELEASE BUNDLE
+# PHASE 1: STOP EXISTING CONTAINERS IN TARGET DIRECTORY
+# ==============================================================================
+if [[ -f "${DEPLOY_TARGET_DIR}/docker-compose.yml" ]]; then
+  echo "Checking for existing Docker containers in: ${DEPLOY_TARGET_DIR}..."
+  (cd "$DEPLOY_TARGET_DIR" && (docker compose down 2>/dev/null || docker-compose down 2>/dev/null || true))
+  echo "Existing containers stopped to release ports ${FRONTEND_PORT} and ${BACKEND_PORT}."
+fi
+
+# ==============================================================================
+# PHASE 2: STAGE FRESH SERVER RELEASE BUNDLE
 # ==============================================================================
 echo "Staging minimal server runtime files into: ${DEPLOY_TARGET_DIR}..."
 PYTHON_BIN="python3"
@@ -58,16 +67,19 @@ if [[ -f "${DEPLOY_TARGET_DIR}/release_manifest.txt" ]]; then
 fi
 
 # ==============================================================================
-# PHASE 2: DEPLOYMENT EXECUTION
+# PHASE 3: DRY RUN CHECK
 # ==============================================================================
 if [[ "$DRY_RUN" == "true" ]]; then
   echo "[STUB] Dry-run enabled."
   echo "[STUB] Server bundle successfully staged and validated in: ${DEPLOY_TARGET_DIR}."
   echo "[STUB] Verified required server files: docker-compose.yml, Dockerfile.*, app/, frontend/, .env."
-  echo "[STUB] To start containers from this isolated folder: DRY_RUN=false ./scripts/deploy.sh ${ENVIRONMENT}"
+  echo "[STUB] To start containers live: DRY_RUN=false ./scripts/deploy.sh ${ENVIRONMENT}"
   exit 0
 fi
 
+# ==============================================================================
+# PHASE 4: BUILD & LAUNCH CONTAINERS
+# ==============================================================================
 DEPLOY_HOST="${DEPLOY_HOST:-}"
 DEPLOY_USER="${DEPLOY_USER:-appuser}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-}"
@@ -86,5 +98,19 @@ else
   (cd "$DEPLOY_TARGET_DIR" && (docker compose -f docker-compose.yml up -d --build 2>/dev/null || docker-compose -f docker-compose.yml up -d --build))
 fi
 
-echo "Deployment to ${ENVIRONMENT} completed successfully."
+# ==============================================================================
+# PHASE 5: AUTOMATED SMOKE HEALTH CHECK
+# ==============================================================================
+if [[ -f "scripts/smoke_test.sh" ]]; then
+  echo "Running automated smoke health check..."
+  ./scripts/smoke_test.sh "http://localhost:${BACKEND_PORT}" "http://localhost:${FRONTEND_PORT}"
+fi
+
+echo ""
+echo "=================================================="
+echo "🚀 DEPLOYMENT COMPLETED SUCCESSFULLY!"
+echo "• Backend API:      http://localhost:${BACKEND_PORT}/api/health"
+echo "• Frontend UI:      http://localhost:${FRONTEND_PORT}"
+echo "• Target Directory: ${DEPLOY_TARGET_DIR}"
+echo "=================================================="
 exit 0
