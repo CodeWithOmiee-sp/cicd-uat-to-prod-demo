@@ -102,7 +102,7 @@ def main():
     parser.add_argument("--env", default="uat", choices=["uat", "production"], help="Target environment")
     parser.add_argument("--port", type=int, default=8000, help="Backend port")
     parser.add_argument("--frontend-port", type=int, default=8080, help="Frontend port")
-    parser.add_argument("--api-url", default="", help="Injected API URL")
+    parser.add_argument("--api-url", default="", nargs="?", const="", help="Injected API URL")
 
     args = parser.parse_args()
     repo_root = Path(__file__).resolve().parent.parent
