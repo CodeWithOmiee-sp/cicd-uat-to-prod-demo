@@ -37,6 +37,7 @@ class TestServerStagingEngine:
         assert (staging_dir / "requirements.txt").is_file()
         assert (staging_dir / "app" / "main.py").is_file()
         assert (staging_dir / "frontend" / "index.html").is_file()
+        assert (staging_dir / "config").is_dir()
         assert (staging_dir / ".env").is_file()
 
     def test_staging_excludes_tests_and_dev_caches(self, staging_dir):

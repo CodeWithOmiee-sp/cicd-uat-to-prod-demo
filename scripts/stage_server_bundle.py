@@ -17,6 +17,7 @@ REQUIRED_SERVER_FILES = [
     "requirements.txt",
     "app",
     "frontend",
+    "config",
     "scripts/smoke_test.sh",
 ]
 

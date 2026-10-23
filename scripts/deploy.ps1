@@ -109,13 +109,26 @@ try {
 # PHASE 4: BUILD & LAUNCH CONTAINERS
 Write-Host "Building and launching Docker containers from: $DeployTargetDir..."
 Push-Location $DeployTargetDir
+$BuildSuccess = $false
 try {
     docker compose up -d --build
-    if ($LASTEXITCODE -ne 0) {
+    if ($LASTEXITCODE -eq 0) {
+        $BuildSuccess = $true
+    } else {
         docker-compose up -d --build
+        if ($LASTEXITCODE -eq 0) {
+            $BuildSuccess = $true
+        }
     }
+} catch {
+    Write-Warning "Docker compose execution encountered an error: $_"
 } finally {
     Pop-Location
+}
+
+if (-not $BuildSuccess) {
+    Write-Error "❌ Docker build and container launch failed in $DeployTargetDir. Aborting deployment."
+    exit 1
 }
 
 # PHASE 5: AUTOMATED HEALTH CHECK
