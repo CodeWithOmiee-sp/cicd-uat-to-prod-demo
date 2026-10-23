@@ -124,15 +124,34 @@ DEPLOY_TARGET_DIR="/opt/orderhub" DRY_RUN=false ./scripts/deploy.sh production
 rsync -avz local_server_storage/orderhub/ user@onprem-host:/opt/orderhub/
 ```
 
-# Access Frontend Dashboard:
-# http://localhost:3000
+### 2.2 Docker Graceful Stop, Replace & Auto-Run Lifecycle
 
-# Access Backend API / OpenAPI Docs:
-# http://localhost:8000/docs
-# http://localhost:8000/api/health
+When deploying an updated build to any target directory (e.g., `./local_server_storage/orderhub` or a custom folder like `C:\...\render_folder`), the deployment runner enforces a deterministic 5-phase lifecycle:
 
-# Stop containers
-docker compose down
+1. **Pre-Stop Guard (`docker compose down`):**
+   Checks if containers are already running in the target directory and stops them, freeing ports `3000` and `8000` to prevent port conflicts (`address already in use`) or file locking.
+2. **Fresh Artifact Staging:**
+   Copies only production runtime files (`app/`, `frontend/`, Dockerfiles, `requirements.txt`, `.env`), leaving behind all tests and dev caches.
+3. **Automated Docker Build & Start:**
+   Executes `docker compose up -d --build` from inside the target directory to build fresh images and boot containers.
+4. **Automated Smoke Health Check:**
+   Pings `http://localhost:8000/api/health` and `http://localhost:3000` with retries until `200 OK`.
+5. **Completion Report:**
+   Outputs live service endpoints on success, or dumps `docker compose logs` for instant diagnosis if unhealthy.
+
+#### PowerShell Usage (Windows):
+```powershell
+# Auto-run deployment into custom folder (stops old containers, stages, boots, health checks):
+.\scripts\deploy.ps1 uat -DeployTargetDir "C:\Users\Omkar Jadhav\local_projects\render_folder"
+
+# Dry-run preview without launching containers:
+.\scripts\deploy.ps1 uat -DeployTargetDir "C:\Users\Omkar Jadhav\local_projects\render_folder" -DryRun
+```
+
+#### Bash Usage:
+```bash
+# Auto-run deployment (dry-run disabled):
+DEPLOY_TARGET_DIR="./local_server_storage/orderhub" DRY_RUN=false ./scripts/deploy.sh uat
 ```
 
 ---
