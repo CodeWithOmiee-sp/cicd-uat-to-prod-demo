@@ -15,7 +15,7 @@
 **Files:**
 - Create: `tests/unit/test_deploy_lifecycle.py`
 
-- [ ] **Step 1: Write test verifying lifecycle argument handling and staging integration**
+- [x] **Step 1: Write test verifying lifecycle argument handling and staging integration**
 
 ```python
 import pytest
@@ -51,12 +51,12 @@ class TestDeployLifecycle:
         assert "FRONTEND_PORT=3000" in env_content
 ```
 
-- [ ] **Step 2: Run pytest to verify test passes**
+- [x] **Step 2: Run pytest to verify test passes**
 
 Run: `python -m pytest tests/unit/test_deploy_lifecycle.py`
 Expected: 1 passed
 
-- [ ] **Step 3: Commit test file**
+- [x] **Step 3: Commit test file**
 
 Check `.agent/config.yml` for `auto_commit` setting.
 If `auto_commit: true` (default when absent):
@@ -72,7 +72,7 @@ git commit -m "test: add unit test for deployment lifecycle staging contract"
 **Files:**
 - Modify: `scripts/deploy.ps1`
 
-- [ ] **Step 1: Update `scripts/deploy.ps1` with stop guard, auto-run, and health check**
+- [x] **Step 1: Update `scripts/deploy.ps1` with stop guard, auto-run, and health check**
 
 ```powershell
 <#
@@ -229,12 +229,12 @@ Write-Host "=================================================="
 exit 0
 ```
 
-- [ ] **Step 2: Test `scripts/deploy.ps1` with `-DryRun`**
+- [x] **Step 2: Test `scripts/deploy.ps1` with `-DryRun`**
 
 Run: `powershell -ExecutionPolicy Bypass -File .\scripts\deploy.ps1 uat -DeployTargetDir "C:\Users\Omkar Jadhav\local_projects\render_folder" -DryRun`
 Expected: Successfully runs stop guard, stages bundle, and prints manifest.
 
-- [ ] **Step 3: Commit `scripts/deploy.ps1`**
+- [x] **Step 3: Commit `scripts/deploy.ps1`**
 
 ```bash
 git add scripts/deploy.ps1
@@ -248,16 +248,16 @@ git commit -m "feat(deploy): implement stop guard, auto-run, and automated healt
 **Files:**
 - Modify: `scripts/deploy.sh`
 
-- [ ] **Step 1: Update `scripts/deploy.sh` with stop guard before staging and health check**
+- [x] **Step 1: Update `scripts/deploy.sh` with stop guard before staging and health check**
 
 Mirror the exact stop guard and health check loop in `scripts/deploy.sh`.
 
-- [ ] **Step 2: Test `scripts/deploy.sh` in dry-run mode**
+- [x] **Step 2: Test `scripts/deploy.sh` in dry-run mode**
 
 Run: `bash scripts/deploy.sh uat`
 Expected: Completes with stop check and manifest output.
 
-- [ ] **Step 3: Commit `scripts/deploy.sh`**
+- [x] **Step 3: Commit `scripts/deploy.sh`**
 
 ```bash
 git add scripts/deploy.sh
@@ -271,14 +271,14 @@ git commit -m "feat(deploy): implement stop guard and health verification in dep
 **Files:**
 - Modify: `docs/PIPELINE.md`
 
-- [ ] **Step 1: Document Stop, Replace, and Auto-Run Lifecycle**
+- [x] **Step 1: Document Stop, Replace, and Auto-Run Lifecycle**
 
 Add Section 2.2 in `docs/PIPELINE.md`:
 - Explaining the 5-phase lifecycle.
 - Detailing how ports 3000 & 8000 are freed safely before file copying.
 - Providing copy-paste PowerShell and Bash commands.
 
-- [ ] **Step 2: Commit `docs/PIPELINE.md`**
+- [x] **Step 2: Commit `docs/PIPELINE.md`**
 
 ```bash
 git add docs/PIPELINE.md
@@ -292,12 +292,12 @@ git commit -m "docs: document Docker stop, replace, and auto-run lifecycle"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-23-docker-stop-replace-autorun.md` (check all boxes)
 
-- [ ] **Step 1: Run full test suite with coverage**
+- [x] **Step 1: Run full test suite with coverage**
 
 Run: `python -m pytest tests/ --cov=app --cov-fail-under=80`
 Expected: All 27 tests pass.
 
-- [ ] **Step 2: Commit plan checklist and push to remote `uat`**
+- [x] **Step 2: Commit plan checklist and push to remote `uat`**
 
 ```bash
 git add docs/superpowers/plans/2026-10-23-docker-stop-replace-autorun.md
